@@ -1,4 +1,4 @@
 # Trigonometry-Game
 
-[Trigonometry-Game](https://trigonometry.github.io)
+[Trigonometry-Game](https://github.com/tsofindavid-personal/trigonometry-game)
 
