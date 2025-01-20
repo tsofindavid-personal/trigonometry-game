@@ -1,4 +1,4 @@
-# trigonometry.github.io
+# Trigonometry-Game
 
-[link](https://trigonometry.github.io)
+[Trigonometry-Game](https://trigonometry.github.io)
 
