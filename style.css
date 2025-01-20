@@ -1,0 +1,44 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+
+.question {
+  font-size: clamp(1em, 4vw, 1.5em);
+  margin: 20px 0;
+  text-align: center;
+}
+
+.feedback {
+  margin-top: 20px;
+  font-size: clamp(1em, 2vw, 1.2em);
+  text-align: center;
+}
+
+.score {
+  margin-top: 20px;
+  font-size: clamp(1em, 2vw, 1.2em);
+  text-align: center;
+}
+
+.modal-content {
+  border-radius: 8px;
+  max-width: 90%;
+  overflow-y: auto;
+}
+
+.timer {
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+button {
+  width: auto;
+}
+
+.btn-show-stats {
+  max-width: 200px;
+}

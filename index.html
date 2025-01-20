@@ -5,247 +5,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trigonometry Quiz</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 20px;
-        }
-
-        .question {
-            font-size: clamp(1em, 4vw, 1.5em);
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 20px 0;
-        }
-
-        button {
-            padding: 10px;
-            font-size: clamp(0.8em, 2vw, 1em);
-            cursor: pointer;
-            margin: 5px 0;
-            width: clamp(150px, 50%, 200px);
-            text-align: center;
-        }
-
-        .feedback {
-            margin-top: 20px;
-            font-size: clamp(1em, 2vw, 1.2em);
-            text-align: center;
-        }
-
-        .score {
-            margin-top: 20px;
-            font-size: clamp(1em, 2vw, 1.2em);
-            text-align: center;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: left;
-            max-width: 90%;
-            width: clamp(300px, 80%, 500px);
-            overflow-y: auto;
-            max-height: 90%;
-        }
-
-        .modal-content h2 {
-            margin-top: 0;
-        }
-
-        .close-btn,
-        .reset-btn {
-            margin-top: 10px;
-            padding: 10px;
-            font-size: clamp(0.8em, 2vw, 1em);
-            cursor: pointer;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        .reset-btn {
-            background-color: #4caf50;
-        }
-
-        @media (max-height: 600px) {
-            .modal-content {
-                max-height: 80%;
-            }
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 
-<body>
-    <h1 style="font-size: clamp(1.5em, 5vw, 2em);">Trigonometry Quiz</h1>
-    <div class="question" id="question">Loading...</div>
-    <div class="options" id="options"></div>
-    <div class="feedback" id="feedback"></div>
+<body class="container text-center">
+    <h1 class="my-3">Trigonometry Quiz</h1>
+    <div class="timer" id="timer">Time: 0.0s</div>
+    <div class="question alert alert-primary" id="question">Loading...</div>
+    <div class="options d-grid gap-2" id="options"></div>
+    <div class="feedback alert" id="feedback"></div>
     <div class="score" id="score"></div>
-    <button onclick="showStats()">Show Statistics</button>
+    <button class="btn btn-info my-3 btn-show-stats" onclick="showStats()">Show Statistics</button>
 
-    <div class="modal" id="statsModal">
-        <div class="modal-content">
-            <h2>Statistics</h2>
-            <div id="stats"></div>
-            <button class="reset-btn" onclick="resetStats()">Reset Statistics</button>
-            <button class="close-btn" onclick="closeStats()">Close</button>
+    <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statsModalLabel">Statistics</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="stats"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" onclick="resetStats()">Reset Statistics</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        const functions = ['sin', 'cos', 'tan', 'cot'];
-        const angles = [0, 30, 45, 60, 90];
-        const answers = {
-            'sin': ['0', '1/2', '√2/2', '√3/2', '1'],
-            'cos': ['1', '√3/2', '√2/2', '1/2', '0'],
-            'tan': ['0', '1/√3', '1', '√3', 'Infinity'],
-            'cot': ['Infinity', '√3', '1', '1/√3', '0']
-        };
-
-        let stats = JSON.parse(localStorage.getItem('trigStats')) || initializeStats();
-        let currentFunction, currentAngle, correctAnswer;
-        let score = 0;
-        let totalQuestions = 0;
-
-        function initializeStats() {
-            const initialStats = {};
-            functions.forEach(func => {
-                initialStats[func] = angles.reduce((acc, angle) => {
-                    acc[angle] = { correct: 0, total: 0 };
-                    return acc;
-                }, {});
-            });
-            localStorage.setItem('trigStats', JSON.stringify(initialStats));
-            return initialStats;
-        }
-
-        function saveStats() {
-            localStorage.setItem('trigStats', JSON.stringify(stats));
-        }
-
-        function getRandomWeightedFunction() {
-            const weights = functions.map(func => {
-                const totalIncorrect = Object.values(stats[func]).reduce((sum, { correct, total }) => sum + (total - correct), 0);
-                return totalIncorrect + 1;
-            });
-
-            const totalWeight = weights.reduce((a, b) => a + b, 0);
-            let random = Math.random() * totalWeight;
-
-            for (let i = 0; i < weights.length; i++) {
-                if (random < weights[i]) return functions[i];
-                random -= weights[i];
-            }
-        }
-
-        function getRandomWeightedAngle(func) {
-            const weights = angles.map(angle => {
-                const { correct, total } = stats[func][angle];
-                return (total - correct) + 1;
-            });
-
-            const totalWeight = weights.reduce((a, b) => a + b, 0);
-            let random = Math.random() * totalWeight;
-
-            for (let i = 0; i < weights.length; i++) {
-                if (random < weights[i]) return angles[i];
-                random -= weights[i];
-            }
-        }
-
-        function generateQuestion() {
-            currentFunction = getRandomWeightedFunction();
-            currentAngle = getRandomWeightedAngle(currentFunction);
-            correctAnswer = answers[currentFunction][angles.indexOf(currentAngle)];
-            document.getElementById('question').innerText = `What is ${currentFunction}(${currentAngle}°)?`;
-            document.getElementById('feedback').innerText = '';
-            renderOptions();
-        }
-
-        function renderOptions() {
-            const optionsContainer = document.getElementById('options');
-            optionsContainer.innerHTML = '';
-            const options = [...answers[currentFunction]];
-            options.sort(() => Math.random() - 0.5);
-
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.innerText = option;
-                button.onclick = () => checkAnswer(option);
-                optionsContainer.appendChild(button);
-            });
-        }
-
-        function checkAnswer(selectedAnswer) {
-            totalQuestions++;
-            stats[currentFunction][currentAngle].total++;
-
-            if (selectedAnswer === correctAnswer) {
-                score++;
-                stats[currentFunction][currentAngle].correct++;
-                document.getElementById('feedback').innerText = 'Correct!';
-                document.getElementById('feedback').style.color = 'green';
-            } else {
-                document.getElementById('feedback').innerText = `Wrong! The correct answer was ${correctAnswer}.`;
-                document.getElementById('feedback').style.color = 'red';
-            }
-            document.getElementById('score').innerText = `Score: ${score} / ${totalQuestions}`;
-            saveStats();
-            setTimeout(generateQuestion, 2000);
-        }
-
-        function showStats() {
-            const statsDiv = document.getElementById('stats');
-            statsDiv.innerHTML = '';
-
-            for (const func of functions) {
-                statsDiv.innerHTML += `<h3>${func}</h3>`;
-                for (const angle of angles) {
-                    const { correct, total } = stats[func][angle];
-                    statsDiv.innerHTML += `<p>${func}(${angle}°): ${correct} / ${total}</p>`;
-                }
-            }
-
-            document.getElementById('statsModal').style.display = 'flex';
-        }
-
-        function resetStats() {
-            stats = initializeStats();
-            saveStats();
-            showStats();
-        }
-
-        function closeStats() {
-            document.getElementById('statsModal').style.display = 'none';
-        }
-
-        generateQuestion();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="index.js"></script>
 </body>
 
 </html>
